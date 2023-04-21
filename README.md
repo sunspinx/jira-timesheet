@@ -1,6 +1,43 @@
 # jira-timesheet
 
+Generates timesheet reports from Jira in csv, html, stdout and markdown.  
+
+## Getting started
+Download a [release](https://github.com/richardbizik/jira-timesheet/releases) from releases page for your operating system.  
+Create a personal access token inside Jira (https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html)
+
+#### Run the jira timesheet to generate a report for current month:
+```bash
+jira-timesheet --token <your-personal-access-token> --url https://<your-jira-instance>
 ```
+
+#### To save your configuration run the executable with `save` flag. Your PAT and jira url settings will be saved into a configuration file and you won't have to supply them again:
+```bash
+jira-timesheet --token <your-personal-access-token> --url https://<your-jira-instance> --save
+```
+
+#### To generate a report for January 2000:
+```bash
+jira-timesheet --token <your-personal-access-token> --url https://<your-jira-instance> --month 1 --year 2000
+```
+
+#### To generate a report in csv:
+```bash
+jira-timesheet --token <your-personal-access-token> --url https://<your-jira-instance> --render csv
+```
+
+#### To generate a report in html:
+```bash
+jira-timesheet --token <your-personal-access-token> --url https://<your-jira-instance> --render html
+```
+
+#### To generate a report in markdown:
+```bash
+jira-timesheet --token <your-personal-access-token> --url https://<your-jira-instance> --render markdown
+```
+
+### Help
+```bash
 jira-timesheet is a tool to view and export work log from Jira
 
 Usage:
