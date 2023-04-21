@@ -82,6 +82,10 @@ func exportTimesheet(cmd *cobra.Command, args []string) {
 			isLastWorklog = worklogs.Total <= worklogs.StartAt+worklogs.MaxResults
 		}
 		for _, jw := range worklogList {
+			// filter out worklogs of other users
+			if jw.Author.Name != cfgUser && jw.Author.EmailAddress != cfgUser {
+				continue
+			}
 			if _, ok := worklogMap[jw.IssueID]; !ok {
 				worklogMap[jw.IssueID] = make([]worklogTime, 0)
 			}

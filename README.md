@@ -8,32 +8,37 @@ Create a personal access token inside Jira (https://confluence.atlassian.com/ent
 
 #### Run the jira timesheet to generate a report for current month:
 ```bash
-jira-timesheet --token <your-personal-access-token> --url https://<your-jira-instance>
+jira-timesheet --token <your-personal-access-token> --url https://<your-jira-instance> --user <jira-account-name>
 ```
 
-#### To save your configuration run the executable with `save` flag. Your PAT and jira url settings will be saved into a configuration file and you won't have to supply them again:
+#### To save your configuration run the executable with `save` flag. Your PAT, username and jira url settings will be saved into a configuration file and you won't have to supply them again:
 ```bash
-jira-timesheet --token <your-personal-access-token> --url https://<your-jira-instance> --save
+jira-timesheet --token <your-personal-access-token> --url https://<your-jira-instance> --user <jira-account-name> --save
 ```
 
 #### To generate a report for January 2000:
 ```bash
-jira-timesheet --token <your-personal-access-token> --url https://<your-jira-instance> --month 1 --year 2000
+jira-timesheet --token <your-personal-access-token> --url https://<your-jira-instance> --user <jira-account-name> --month 1 --year 2000
 ```
 
 #### To generate a report in csv:
 ```bash
-jira-timesheet --token <your-personal-access-token> --url https://<your-jira-instance> --render csv
+jira-timesheet --token <your-personal-access-token> --url https://<your-jira-instance> --user <jira-account-name> --render csv
 ```
 
 #### To generate a report in html:
 ```bash
-jira-timesheet --token <your-personal-access-token> --url https://<your-jira-instance> --render html
+jira-timesheet --token <your-personal-access-token> --url https://<your-jira-instance> --user <jira-account-name> --render html
 ```
 
 #### To generate a report in markdown:
 ```bash
-jira-timesheet --token <your-personal-access-token> --url https://<your-jira-instance> --render markdown
+jira-timesheet --token <your-personal-access-token> --url https://<your-jira-instance> --user <jira-account-name> --render markdown
+```
+
+#### Run with saved configuration for current month:
+```bash
+jira-timesheet
 ```
 
 ### Help
@@ -59,7 +64,7 @@ Flags:
   -s, --save            saves the configuration into file
   -t, --token string    personal access token from Jira
       --url string      url to your Jira instance
-  -u, --user string     jira login
+  -u, --user string     jira username
       --year int        Year for which to generate timesheet (default is current year, has to be used with --month)
 
 Use "jira-timesheet [command] --help" for more information about a command.

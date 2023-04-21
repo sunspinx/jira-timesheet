@@ -32,7 +32,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.jira-timesheet.yaml)")
 	rootCmd.PersistentFlags().StringVarP(&cfgOutputRender, "render", "r", "terminal", "how to render the output of timesheet (terminal/csv/html/markdown)")
 	rootCmd.PersistentFlags().StringVarP(&cfgToken, "token", "t", "", "personal access token from Jira")
-	rootCmd.PersistentFlags().StringVarP(&cfgUser, "user", "u", "", "jira login")
+	rootCmd.PersistentFlags().StringVarP(&cfgUser, "user", "u", "", "jira username")
 	rootCmd.PersistentFlags().StringVar(&cfgJiraUrl, "url", "", "url to your Jira instance")
 	rootCmd.PersistentFlags().StringVar(&cfgApiVersion, "api", "2", "Jira REST API version to use")
 	rootCmd.PersistentFlags().IntVar(&cfgMonth, "month", 0, "Month of the year for which to generate timesheet (default is current month)")
@@ -109,6 +109,22 @@ func initConfig() {
 			fmt.Println("Could not write config", err)
 			os.Exit(1)
 		}
+	}
+	fail := false
+	if cfgUser == "" {
+		fail = true
+		fmt.Println("You need to provide user (--user flag).")
+	}
+	if cfgJiraUrl == "" {
+		fail = true
+		fmt.Println("You need to provide Jira url (--url flag).")
+	}
+	if cfgToken == "" {
+		fail = true
+		fmt.Println("You need to provide token (--token flag).")
+	}
+	if fail {
+		os.Exit(1)
 	}
 
 	client = &http.Client{
