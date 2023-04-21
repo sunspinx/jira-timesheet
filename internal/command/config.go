@@ -112,7 +112,7 @@ func initConfig() {
 	}
 
 	client = &http.Client{
-		Transport: authorization.AuthorizationTransport(&http.Transport{}, cfgUser, cfgToken),
+		Transport: authorization.AuthorizationTransport(&http.Transport{}, cfgToken),
 		Timeout:   10 * time.Second,
 	}
 }
