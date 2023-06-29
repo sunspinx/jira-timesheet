@@ -140,6 +140,7 @@ func initConfig() {
 		Transport: authorization.AuthorizationTransport(
 			&http.Transport{},
 			cfgToken,
+			cfgUser,
 			cfgJiraCloud,
 		),
 		Timeout: 10 * time.Second,

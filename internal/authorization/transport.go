@@ -28,10 +28,11 @@ func (t authorizationRoundTripper) RoundTrip(request *http.Request) (*http.Respo
 	return response, err
 }
 
-func AuthorizationTransport(transport http.RoundTripper, token string, isCloud bool) http.RoundTripper {
+func AuthorizationTransport(transport http.RoundTripper, token string, username string, isCloud bool) http.RoundTripper {
 	return &authorizationRoundTripper{
-		rt:      transport,
-		token:   token,
-		isCloud: isCloud,
+		rt:       transport,
+		username: username,
+		token:    token,
+		isCloud:  isCloud,
 	}
 }
