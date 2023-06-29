@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/mitchellh/go-homedir"
@@ -19,6 +20,7 @@ var (
 	cfgToken         string
 	cfgSave          bool
 	cfgJiraUrl       string
+	cfgJiraCloud     bool
 	cfgUser          string
 	cfgApiVersion    string
 	cfgOutputRender  string
@@ -81,8 +83,15 @@ func initConfig() {
 	// url
 	if cfgJiraUrl != "" {
 		viper.Set("jira-url", cfgJiraUrl)
+		if strings.Contains(cfgJiraUrl, "atlassian.com") {
+			cfgJiraCloud = true
+		} else {
+			cfgJiraCloud = false
+		}
+		viper.Set("isCloud", cfgJiraCloud)
 	} else {
 		cfgJiraUrl = viper.GetString("jira-url")
+		cfgJiraCloud = viper.GetBool("jira-cloud")
 	}
 	// api version
 	if cfgApiVersion != "" {
@@ -128,7 +137,11 @@ func initConfig() {
 	}
 
 	client = &http.Client{
-		Transport: authorization.AuthorizationTransport(&http.Transport{}, cfgToken),
-		Timeout:   10 * time.Second,
+		Transport: authorization.AuthorizationTransport(
+			&http.Transport{},
+			cfgToken,
+			cfgJiraCloud,
+		),
+		Timeout: 10 * time.Second,
 	}
 }

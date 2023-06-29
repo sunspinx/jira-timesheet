@@ -220,8 +220,13 @@ func createTableData(date time.Time, worklogMap map[string][]worklogTime) table.
 	t.AppendFooter(footerRow)
 	totalMonthRow := make(table.Row, daysInMonth)
 	for i := 0; i < daysInMonth; i++ {
-		totalMonthRow[i] = fmt.Sprintf("Month: %.2fh", totalInMonth.Hours())
+		if i == daysInMonth-1 {
+			totalMonthRow[i] = fmt.Sprintf("Month: %.2fh", totalInMonth.Hours())
+		} else {
+			totalMonthRow[i] = ""
+		}
 	}
+
 	t.AppendFooter(totalMonthRow, table.RowConfig{AutoMerge: true})
 	t.AppendSeparator()
 	return t
