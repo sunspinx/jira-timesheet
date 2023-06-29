@@ -83,7 +83,7 @@ func initConfig() {
 	// url
 	if cfgJiraUrl != "" {
 		viper.Set("jira-url", cfgJiraUrl)
-		if strings.Contains(cfgJiraUrl, "atlassian.com") {
+		if strings.Contains(cfgJiraUrl, "atlassian.net") {
 			cfgJiraCloud = true
 		} else {
 			cfgJiraCloud = false
