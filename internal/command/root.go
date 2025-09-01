@@ -24,10 +24,15 @@ var rootCmd = &cobra.Command{
 }
 
 type IssueSearch struct {
-	Jql        string   `json:"jql"`
-	StartAt    int      `json:"startAt"`
-	MaxResults int      `json:"maxResults"`
-	Fields     []string `json:"fields"`
+	Jql           string   `json:"jql"`
+	Fields        []string `json:"fields,omitempty"`
+	MaxResults    int      `json:"maxResults,omitempty"`
+	NextPageToken string   `json:"nextPageToken,omitempty"`
+}
+
+type jiraSearchRespEnhanced struct {
+	Issues        []data.JiraIssue `json:"issues"`
+	NextPageToken *string          `json:"nextPageToken"`
 }
 
 type worklogTime struct {
@@ -41,7 +46,6 @@ type worklogTime struct {
 func exportTimesheet(cmd *cobra.Command, args []string) {
 	worklogMap := make(map[string][]worklogTime)
 	jiraIdKeys := make(map[string]string)
-	issueIndex := 0
 	maxResults := 50
 
 	var anchor time.Time
@@ -55,34 +59,40 @@ func exportTimesheet(cmd *cobra.Command, args []string) {
 	} else {
 		anchor = time.Now()
 	}
+
 	startOfMonth := time.Date(anchor.Year(), anchor.Month(), 1, 0, 0, 0, 0, anchor.Location())
 	endOfMonth := startOfMonth.AddDate(0, 1, -1)
-	issueList := []data.JiraIssue{}
 
-	issues := queryIssues(issueIndex, maxResults, startOfMonth, endOfMonth)
-	issueList = append(issueList, issues.Issues...)
-	isLastIssue := issues.Total <= issues.StartAt+issues.MaxResults
-	for !isLastIssue {
-		issueIndex = issueIndex + maxResults
-		issues := queryIssues(issueIndex, maxResults, startOfMonth, endOfMonth)
-		issueList = append(issueList, issues.Issues...)
-		isLastIssue = issues.Total <= issues.StartAt+issues.MaxResults
+	issueList := []data.JiraIssue{}
+	nextToken := "" // empty for first page
+	fmt.Println("Loading jira issues")
+	for {
+		issues, token := queryIssues(nextToken, maxResults, startOfMonth, endOfMonth)
+		issueList = append(issueList, issues...)
+
+		if token == nil || *token == "" {
+			break
+		}
+		nextToken = *token
 	}
+
 	for _, ji := range issueList {
 		jiraIdKeys[ji.ID] = ji.Key
 		worklogIndex := 0
 		worklogList := []data.JiraWorklog{}
+
 		worklogs := queryWorklog(ji.ID, worklogIndex, maxResults, startOfMonth, endOfMonth)
 		worklogList = append(worklogList, worklogs.Worklogs...)
 		isLastWorklog := worklogs.Total <= worklogs.StartAt+worklogs.MaxResults
+
 		for !isLastWorklog {
 			worklogIndex = worklogIndex + maxResults
 			worklogs := queryWorklog(ji.ID, worklogIndex, maxResults, startOfMonth, endOfMonth)
 			worklogList = append(worklogList, worklogs.Worklogs...)
 			isLastWorklog = worklogs.Total <= worklogs.StartAt+worklogs.MaxResults
 		}
+
 		for _, jw := range worklogList {
-			// filter out worklogs of other users
 			if jw.Author.Name != cfgUser && jw.Author.EmailAddress != cfgUser {
 				continue
 			}
@@ -232,48 +242,55 @@ func createTableData(date time.Time, worklogMap map[string][]worklogTime) table.
 	return t
 }
 
-func queryIssues(startAt int, maxResults int, startOfMonth time.Time, endOfMonth time.Time) data.JiraSearchResp {
-	searchQuery := IssueSearch{
-		Jql: fmt.Sprintf("worklogDate <= %s and worklogDate >= %s and worklogAuthor = currentUser() ORDER BY created DESC",
-			endOfMonth.Format("2006-01-02"),
-			startOfMonth.Format("2006-01-02"),
-		),
-		StartAt:    startAt,
-		MaxResults: maxResults,
-		Fields:     []string{"summary"},
+func queryIssues(nextPageToken string, maxResults int, startOfMonth, endOfMonth time.Time) ([]data.JiraIssue, *string) {
+	jql := fmt.Sprintf(
+		"worklogDate <= %s and worklogDate >= %s AND worklogAuthor = currentUser() ORDER BY created DESC",
+		endOfMonth.Format("2006-01-02"),
+		startOfMonth.Format("2006-01-02"),
+	)
+
+	req := IssueSearch{
+		Jql:           jql,
+		Fields:        []string{"summary"},
+		MaxResults:    maxResults,
+		NextPageToken: nextPageToken,
 	}
+
 	bodyBuf := &bytes.Buffer{}
-	err := json.NewEncoder(bodyBuf).Encode(searchQuery)
-	if err != nil {
+	if err := json.NewEncoder(bodyBuf).Encode(req); err != nil {
 		fmt.Println("Failed to encode search request body", err)
 		os.Exit(1)
 	}
-	resp, err := client.Post(fmt.Sprintf("%s/rest/api/%s/search", cfgJiraUrl, cfgApiVersion), "application/json", bodyBuf)
+
+	// Jira Cloud v3 Enhanced Search endpoint
+	url := fmt.Sprintf("%s/rest/api/3/search/jql", cfgJiraUrl)
+	resp, err := client.Post(url, "application/json", bodyBuf)
 	if err != nil {
 		fmt.Println("Failed to retrieve issues from Jira", err)
 		os.Exit(1)
 	}
-	if resp.StatusCode != 200 {
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
 		fmt.Printf("Expected status code 200 got %d\n", resp.StatusCode)
 		os.Exit(1)
 	}
-
-	issues := data.JiraSearchResp{}
+	var out jiraSearchRespEnhanced
 	respBody, err := io.ReadAll(resp.Body)
-	resp.Body.Close()
 	if err != nil {
 		fmt.Println("Failed to read body of search response", err)
 		os.Exit(1)
 	}
-	err = json.Unmarshal(respBody, &issues)
-	if err != nil {
+	if err := json.Unmarshal(respBody, &out); err != nil {
 		fmt.Println("Failed to unmarshal search response", err)
 		os.Exit(1)
 	}
-	return issues
+	return out.Issues, out.NextPageToken
 }
 
 func queryWorklog(issueId string, startAt int, maxResults int, startOfMonth time.Time, endOfMonth time.Time) data.JiraIssueWorklog {
+	fmt.Printf("Getting worklog for task: %s\n", issueId)
+
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/rest/api/%s/issue/%s/worklog", cfgJiraUrl, cfgApiVersion, issueId), nil)
 	if err != nil {
 		fmt.Println("Failed to create request for worklog", err)

@@ -10,6 +10,6 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number of jira-timesheet",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("jira-timesheet 0.2.0")
+		fmt.Println("jira-timesheet 0.5.0")
 	},
 }
