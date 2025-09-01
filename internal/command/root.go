@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/jedib0t/go-pretty/v6/table"
-	"github.com/richardbizik/jira-timesheet/internal/data"
 	"github.com/spf13/cobra"
+	"github.com/sunspinx/jira-timesheet/internal/data"
 	"golang.org/x/term"
 )
 

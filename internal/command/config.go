@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/mitchellh/go-homedir"
-	"github.com/richardbizik/jira-timesheet/internal/authorization"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/sunspinx/jira-timesheet/internal/authorization"
 )
 
 var (

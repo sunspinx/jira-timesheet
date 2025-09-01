@@ -1,4 +1,4 @@
-module github.com/richardbizik/jira-timesheet
+module github.com/sunspinx/jira-timesheet
 
 go 1.25.0
 

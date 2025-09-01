@@ -3,7 +3,7 @@
 Generates timesheet reports from Jira in csv, html, stdout and markdown.  
 
 ## Getting started
-Download a [release](https://github.com/richardbizik/jira-timesheet/releases) from releases page for your operating system.  
+Download a [release](https://github.com/sunspinx/jira-timesheet/releases) from releases page for your operating system.  
 Create a personal access token inside Jira (https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html)
 
 #### Run the jira timesheet to generate a report for current month:
